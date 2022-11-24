@@ -6,7 +6,7 @@ def main():
     print(matriz)
     matriz.exibir_matriz()
     matriz.solucionar_matriz()
-    #matriz.exibir_matriz()
+    matriz.exibir_matriz()
 
 
 

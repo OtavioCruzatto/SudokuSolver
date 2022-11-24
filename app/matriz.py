@@ -118,8 +118,8 @@ class Matriz:
                     for coluna in range(6, 9):
                         conjunto_aux[conjunto].append(self.__tabela[linha][coluna])
 
-        for lista in conjunto_aux:
-            conjuntos.append(Conjunto(lista))
+        for indice_da_lista, lista in enumerate(conjunto_aux):
+            conjuntos.append(Conjunto(lista, indice_da_lista))
 
         return conjuntos
 
@@ -270,6 +270,42 @@ class Matriz:
         for conjunto in self.__conjuntos:
             print(conjunto.get_conjunto())
 
+    @staticmethod
+    def __obter_linha_de_uma_posicao_no_conjunto(index_do_conjunto: int, posicao: int) -> int:
+        if (posicao < 3):
+            linha_da_posicao_no_conjunto = 0
+        elif (posicao < 6):
+            linha_da_posicao_no_conjunto = 1
+        else:
+            linha_da_posicao_no_conjunto = 2
+
+        if (index_do_conjunto < 3):
+            linha_da_posicao_no_conjunto += 0
+        elif (index_do_conjunto < 6):
+            linha_da_posicao_no_conjunto += 3
+        else:
+            linha_da_posicao_no_conjunto += 6
+
+        return linha_da_posicao_no_conjunto
+
+    @staticmethod
+    def __obter_coluna_de_uma_posicao_no_conjunto(index_do_conjunto: int, posicao: int) -> int:
+        if ((posicao % 3) == 0):
+            coluna_da_posicao_no_conjunto = 0
+        elif ((posicao % 3) == 1):
+            coluna_da_posicao_no_conjunto = 1
+        else:
+            coluna_da_posicao_no_conjunto = 2
+
+        if ((index_do_conjunto % 3) == 0):
+            coluna_da_posicao_no_conjunto += 0
+        elif ((index_do_conjunto % 3) == 1):
+            coluna_da_posicao_no_conjunto += 3
+        else:
+            coluna_da_posicao_no_conjunto += 6
+
+        return coluna_da_posicao_no_conjunto
+
 
     def verificar_conjuntos(self) -> None:
         self.atualiza_conjunto_se_faltar_apenas_um_item()
@@ -283,7 +319,41 @@ class Matriz:
             print(f"Conjunto {indice}: Valores faltantes: {valores_faltantes[indice]}")
             print()
 
-        print()
+        linhas_contem_valor_em_teste = [False, False]
+        colunas_contem_valor_em_teste = [False, False]
+        for indice_do_conjunto, conjunto in enumerate(self.__conjuntos):
+            for posicao_com_zero in posicoes_com_zero[indice_do_conjunto]:
+                linha = self.__obter_linha_de_uma_posicao_no_conjunto(indice_do_conjunto, posicao_com_zero)
+                coluna = self.__obter_coluna_de_uma_posicao_no_conjunto(indice_do_conjunto, posicao_com_zero)
+
+                for valor_em_teste in valores_faltantes[indice_do_conjunto]:
+                    linha_contem_valor_em_teste = self.__linhas[linha].contem(valor_em_teste)
+                    coluna_contem_valor_em_teste = self.__colunas[coluna].contem(valor_em_teste)
+
+                    linha_analizada = 0
+                    for linha_no_conjunto in conjunto.get_linhas_do_conjunto_na_matriz():
+                        if (linha_no_conjunto != linha):
+                            if conjunto.trecho_da_linha_no_conjunto_esta_completo(linha_no_conjunto):
+                                linhas_contem_valor_em_teste[linha_analizada] = True
+                            else:
+                                linhas_contem_valor_em_teste[linha_analizada] = self.__linhas[linha_no_conjunto].contem(valor_em_teste)
+                            linha_analizada += 1
+
+                    coluna_analizada = 0
+                    for coluna_no_conjunto in conjunto.get_colunas_do_conjunto_na_matriz():
+                        if (coluna_no_conjunto != coluna):
+                            if conjunto.trecho_da_coluna_no_conjunto_esta_completo(coluna_no_conjunto):
+                                colunas_contem_valor_em_teste[coluna_analizada] = True
+                            else:
+                                colunas_contem_valor_em_teste[coluna_analizada] = self.__colunas[coluna_no_conjunto].contem(valor_em_teste)
+                            coluna_analizada += 1
+
+
+                    if ((linha_contem_valor_em_teste == False) and (coluna_contem_valor_em_teste == False) and
+                        (linhas_contem_valor_em_teste[0] == True) and (linhas_contem_valor_em_teste[1] == True) and
+                        (colunas_contem_valor_em_teste[0] == True) and (colunas_contem_valor_em_teste[1] == True)):
+                        self.inserir_numero_na_matriz_pelo_conjunto(indice_do_conjunto, posicao_com_zero, valor_em_teste)
+                        self.__atualizar_atributos_linhas_colunas_conjuntos()
 
 
     def verificar_linhas(self) -> None:
@@ -296,8 +366,9 @@ class Matriz:
 
     def solucionar_matriz(self) -> None:
 
-        self.verificar_conjuntos()
-        #self.verificar_linhas()
-        #self.verificar_colunas()
+        for i in range(50):
+            self.verificar_conjuntos()
+            self.verificar_linhas()
+            self.verificar_colunas()
         print("=============================")
 
