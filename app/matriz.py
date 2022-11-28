@@ -307,18 +307,7 @@ class Matriz:
         return coluna_da_posicao_no_conjunto
 
 
-    def verificar_conjuntos(self) -> None:
-        self.atualiza_conjunto_se_faltar_apenas_um_item()
-
-        posicoes_com_zero = []
-        valores_faltantes = []
-        for indice, conjunto in enumerate(self.__conjuntos):
-            posicoes_com_zero.append(conjunto.get_posicao_dos_zeros())
-            valores_faltantes.append(conjunto.get_valores_faltantes())
-            print(f"Conjunto {indice}: Posicoes com zero: {posicoes_com_zero[indice]}")
-            print(f"Conjunto {indice}: Valores faltantes: {valores_faltantes[indice]}")
-            print()
-
+    def __atualiza_conjunto_avaliando_linhas_e_colunas(self,posicoes_com_zero: list[list[int]], valores_faltantes: list[list[int]]) -> None:
         linhas_contem_valor_em_teste = [False, False]
         colunas_contem_valor_em_teste = [False, False]
         for indice_do_conjunto, conjunto in enumerate(self.__conjuntos):
@@ -348,12 +337,94 @@ class Matriz:
                                 colunas_contem_valor_em_teste[coluna_analizada] = self.__colunas[coluna_no_conjunto].contem(valor_em_teste)
                             coluna_analizada += 1
 
-
                     if ((linha_contem_valor_em_teste == False) and (coluna_contem_valor_em_teste == False) and
                         (linhas_contem_valor_em_teste[0] == True) and (linhas_contem_valor_em_teste[1] == True) and
                         (colunas_contem_valor_em_teste[0] == True) and (colunas_contem_valor_em_teste[1] == True)):
                         self.inserir_numero_na_matriz_pelo_conjunto(indice_do_conjunto, posicao_com_zero, valor_em_teste)
                         self.__atualizar_atributos_linhas_colunas_conjuntos()
+
+
+    def teste(self, posicoes_com_zero: list[list[int]], valores_faltantes: list[list[int]]) -> None:
+
+        for indice_do_conjunto, conjunto in enumerate(self.__conjuntos):
+            for posicao in posicoes_com_zero[indice_do_conjunto]:
+                for valor in valores_faltantes[indice_do_conjunto]:
+                    posicoes_com_zero_aux = posicoes_com_zero[indice_do_conjunto].copy()
+                    # print(id(posicoes_com_zero_aux))
+                    # print(id(posicoes_com_zero[indice_do_conjunto]))
+                    # print(f"Conjunto: {indice_do_conjunto}, Valor considerado: {valor}, Posicao considerada: {posicao}, Valores faltantes: {valores_faltantes[indice_do_conjunto]}, Posicoes com zero (INICIAL): {posicoes_com_zero_aux}")
+
+                    linhas_do_conjunto = conjunto.get_linhas_do_conjunto_na_matriz()
+                    for linha in linhas_do_conjunto:
+                        if (self.__linhas[linha].contem(valor)):
+                            if (linha == 0 or linha == 3 or linha == 6):
+                                for posicao_avaliada in [0, 1, 2]:
+                                    if (posicao_avaliada in posicoes_com_zero_aux):
+                                        posicoes_com_zero_aux.remove(posicao_avaliada)
+                                        # print(f"Posicao removida pela linha: {posicao_avaliada}, Valor considerado: {valor}")
+                            elif (linha == 1 or linha == 4 or linha == 7):
+                                for posicao_avaliada in [3, 4, 5]:
+                                    if (posicao_avaliada in posicoes_com_zero_aux):
+                                        posicoes_com_zero_aux.remove(posicao_avaliada)
+                                        # print(f"Posicao removida pela linha: {posicao_avaliada}, Valor considerado: {valor}")
+                            elif (linha == 2 or linha == 5 or linha == 8):
+                                for posicao_avaliada in [6, 7, 8]:
+                                    if (posicao_avaliada in posicoes_com_zero_aux):
+                                        posicoes_com_zero_aux.remove(posicao_avaliada)
+                                        # print(f"Posicao removida pela linha: {posicao_avaliada}, Valor considerado: {valor}")
+
+                    colunas_do_conjunto = conjunto.get_colunas_do_conjunto_na_matriz()
+                    for coluna in colunas_do_conjunto:
+                        if (self.__colunas[coluna].contem(valor)):
+                            if (coluna == 0 or coluna == 3 or coluna == 6):
+                                for posicao_avaliada in [0, 3, 6]:
+                                    if (posicao_avaliada in posicoes_com_zero_aux):
+                                        posicoes_com_zero_aux.remove(posicao_avaliada)
+                                        # print(f"Posicao removida pela coluna: {posicao_avaliada}, Valor considerado: {valor}")
+                            elif (coluna == 1 or coluna == 4 or coluna == 7):
+                                for posicao_avaliada in [1, 4, 7]:
+                                    if (posicao_avaliada in posicoes_com_zero_aux):
+                                        posicoes_com_zero_aux.remove(posicao_avaliada)
+                                        # print(f"Posicao removida pela coluna: {posicao_avaliada}, Valor considerado: {valor}")
+                            elif (coluna == 2 or coluna == 5 or coluna == 8):
+                                for posicao_avaliada in [2, 5, 8]:
+                                    if (posicao_avaliada in posicoes_com_zero_aux):
+                                        posicoes_com_zero_aux.remove(posicao_avaliada)
+                                        # print(f"Posicao removida pela coluna: {posicao_avaliada}, Valor considerado: {valor}")
+
+                        if (len(posicoes_com_zero_aux) == 1 and self.__linhas[self.__obter_linha_de_uma_posicao_no_conjunto(indice_do_conjunto, posicao)].contem(valor) == False and self.__colunas[self.__obter_coluna_de_uma_posicao_no_conjunto(indice_do_conjunto, posicao)].contem(valor) == False):
+                            # print(f"Avaliação: Conjunto: {indice_do_conjunto}, Valor considerado: {valor}, Posicao considerada: {posicao}, Valores faltantes: {valores_faltantes[indice_do_conjunto]}, Posicoes com zero (FINAL): {posicoes_com_zero_aux}")
+                            self.inserir_numero_na_matriz_pelo_conjunto(indice_do_conjunto, posicoes_com_zero_aux[0], valor)
+                            self.__atualizar_atributos_linhas_colunas_conjuntos()
+
+                    # print(f"Conjunto: {indice_do_conjunto}, Posicao: {posicao}, Valor faltante: {valor}, Linha: {linha_da_posicao_em_teste}, Coluna: {coluna_da_posicao_em_teste}")
+                    # print(f"Conjunto: {indice_do_conjunto}, Valor considerado: {valor}, Posicao considerada: {posicao}, Valores faltantes: {valores_faltantes[indice_do_conjunto]}, Posicoes com zero (FINAL): {posicoes_com_zero_aux}\n")
+
+    def get_posicao_dos_zeros_nos_conjuntos_da_matriz(self) -> list[list[int]]:
+        posicoes_com_zero = []
+        for indice, conjunto in enumerate(self.__conjuntos):
+            posicoes_com_zero.append(conjunto.get_posicao_dos_zeros())
+        return posicoes_com_zero
+
+    def get_valores_faltantes_nos_conjuntos_da_matriz(self) -> list[list[int]]:
+        valores_faltantes = []
+        for indice, conjunto in enumerate(self.__conjuntos):
+            valores_faltantes.append(conjunto.get_valores_faltantes())
+        return valores_faltantes
+
+    def exibir_posicoes_e_valores_faltantes_nos_conjuntos_da_matriz(self, posicoes_com_zero: [list[list[int]]], valores_faltantes: [list[list[int]]]):
+        for indice, conjunto in enumerate(self.__conjuntos):
+            print(f"Conjunto {indice}: Posicoes com zero: {posicoes_com_zero[indice]}")
+            print(f"Conjunto {indice}: Valores faltantes: {valores_faltantes[indice]}")
+            print()
+
+    def verificar_conjuntos(self) -> None:
+        #self.atualiza_conjunto_se_faltar_apenas_um_item()
+        posicoes_com_zero = self.get_posicao_dos_zeros_nos_conjuntos_da_matriz()
+        valores_faltantes = self.get_valores_faltantes_nos_conjuntos_da_matriz()
+        #self.__atualiza_conjunto_avaliando_linhas_e_colunas(posicoes_com_zero, valores_faltantes)
+        self.teste(posicoes_com_zero, valores_faltantes)
+
 
 
     def verificar_linhas(self) -> None:
@@ -365,10 +436,26 @@ class Matriz:
 
 
     def solucionar_matriz(self) -> None:
+        soma_de_todos_elementos_de_uma_matriz_completa = 405
+        contador_de_iteracoes = 0
+        soma_atual_da_matriz = 0
 
-        for i in range(50):
+        while soma_atual_da_matriz != soma_de_todos_elementos_de_uma_matriz_completa:
             self.verificar_conjuntos()
-            self.verificar_linhas()
-            self.verificar_colunas()
-        print("=============================")
+            #self.verificar_linhas()
+            #self.verificar_colunas()
+
+            soma_atual_da_matriz = 0
+            for linha in self.__tabela:
+                for numero in linha:
+                    soma_atual_da_matriz += numero
+
+            contador_de_iteracoes += 1
+            if (contador_de_iteracoes == 50):
+                print("Nao foi possivel resolver a matriz!")
+                return
+
+        print(f"Matriz resolvida em {contador_de_iteracoes} iteracoes!")
+
+
 
